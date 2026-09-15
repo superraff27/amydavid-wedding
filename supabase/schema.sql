@@ -34,10 +34,13 @@ create table if not exists rsvps (
 alter table wedding_settings enable row level security;
 alter table rsvps enable row level security;
 
--- Anyone (anon) can READ the wedding settings — the public site needs this.
+-- Anyone (public — includes anon and, harmlessly, authenticated) can READ
+-- the wedding settings — the public site needs this. Using `public` here
+-- instead of `anon` avoids role-mapping edge cases with newer Supabase
+-- publishable/secret API keys.
 create policy "Public can read settings"
   on wedding_settings for select
-  to anon
+  to public
   using (true);
 
 -- Only a logged-in admin can UPDATE the settings.
@@ -47,10 +50,10 @@ create policy "Authenticated can update settings"
   using (true)
   with check (true);
 
--- Anyone (anon) can INSERT an rsvp — guests are not logged in.
+-- Anyone (public) can INSERT an rsvp — guests are not logged in.
 create policy "Public can submit rsvp"
   on rsvps for insert
-  to anon
+  to public
   with check (true);
 
 -- Only a logged-in admin can READ the rsvp list.
